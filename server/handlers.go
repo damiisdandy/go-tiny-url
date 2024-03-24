@@ -2,10 +2,12 @@ package server
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/damiisdandy/go-tiny-url/internal/database"
 	"github.com/damiisdandy/go-tiny-url/utils"
+	"github.com/go-chi/chi/v5"
 )
 
 type ResponseData struct {
@@ -43,11 +45,7 @@ func (s *server) CreateShortURL(w http.ResponseWriter, r *http.Request) {
 		OriginalUrl: requestData.URL,
 	})
 	if err != nil {
-		utils.RespondWithJSON(w, http.StatusBadRequest, ResponseData{
-			Message: "Internal server error",
-			Status:  false,
-			Data:    nil,
-		})
+		utils.RespondWithError(w, http.StatusBadRequest, "Internal server error")
 		return
 	}
 
@@ -55,9 +53,22 @@ func (s *server) CreateShortURL(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) Redirect(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Redirect"))
+	shortURL := chi.URLParam(r, "shortURL")
+	url, err := s.DB.GetURL(r.Context(), shortURL)
+	if err != nil {
+		fmt.Println(err)
+		utils.RespondWithError(w, http.StatusBadRequest, fmt.Sprintf("Error fetching URL: %q", shortURL))
+		return
+	}
+	http.Redirect(w, r, url.OriginalUrl, http.StatusMovedPermanently)
 }
 
 func (s *server) DeleteShortURL(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("DeleteShortURL"))
+	shortURL := chi.URLParam(r, "shortURL")
+	_, err := s.DB.DeleteURL(r.Context(), shortURL)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, fmt.Sprintf("Error deleting URL: %q", shortURL))
+		return
+	}
+	utils.RespondWithJSON(w, http.StatusOK, nil)
 }
