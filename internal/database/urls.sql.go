@@ -29,3 +29,19 @@ func (q *Queries) CreateURL(ctx context.Context, arg CreateURLParams) (Url, erro
 	)
 	return i, err
 }
+
+const deleteURL = `-- name: DeleteURL :one
+DELETE FROM urls WHERE url_id = $1 RETURNING id, created_at, url_id, original_url
+`
+
+func (q *Queries) DeleteURL(ctx context.Context, urlID string) (Url, error) {
+	row := q.db.QueryRowContext(ctx, deleteURL, urlID)
+	var i Url
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UrlID,
+		&i.OriginalUrl,
+	)
+	return i, err
+}

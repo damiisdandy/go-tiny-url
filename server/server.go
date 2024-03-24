@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"strconv"
 
-	"github.com/damiisdandy/go-tiny-url/handlers"
 	"github.com/damiisdandy/go-tiny-url/internal/database"
 	"github.com/damiisdandy/go-tiny-url/utils"
 	"github.com/go-chi/chi/v5"
@@ -50,11 +49,11 @@ func (s *server) MountMiddlewares() {
 func (s *server) MountHandlers() {
 	api := chi.NewRouter()
 
-	api.Get("/health", handlers.HealthCheck)
+	api.Get("/health", HealthCheck)
 
-	api.Post("/shorten", handlers.CreateShortURL)
-	api.Delete("/delete/{shortURL}", handlers.DeleteShortURL)
-	api.Get("/{shortURL}", handlers.Redirect)
+	api.Post("/shorten", s.CreateShortURL)
+	api.Delete("/delete/{shortURL}", s.DeleteShortURL)
+	api.Get("/{shortURL}", s.Redirect)
 
 	s.Router.Mount("/v1", api)
 }

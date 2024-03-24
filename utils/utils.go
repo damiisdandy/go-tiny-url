@@ -3,8 +3,13 @@ package utils
 import (
 	"encoding/json"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
+)
+
+const (
+	ALLOWED_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 )
 
 func RespondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
@@ -40,4 +45,12 @@ func GetEnv(key string) string {
 		panic("Environment variable " + key + " is not set.")
 	}
 	return value
+}
+
+func GenerateRandomString(length int) string {
+	b := make([]byte, length)
+	for i := range b {
+		b[i] = ALLOWED_CHARS[rand.Intn(len(ALLOWED_CHARS))]
+	}
+	return string(b)
 }
