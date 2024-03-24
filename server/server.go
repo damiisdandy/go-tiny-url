@@ -1,7 +1,12 @@
 package server
 
 import (
+	"database/sql"
+	"strconv"
+
 	"github.com/damiisdandy/go-tiny-url/handlers"
+	"github.com/damiisdandy/go-tiny-url/internal/database"
+	"github.com/damiisdandy/go-tiny-url/utils"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
@@ -14,15 +19,22 @@ const (
 type server struct {
 	Router *chi.Mux
 	Port   int
-	// TODO: Add a database connection here
+	DB     *database.Queries
 }
 
 func New() *server {
 	r := chi.NewRouter()
 
+	port := utils.GetEnv("PORT")
+	p, err := strconv.Atoi(port)
+
+	if err != nil {
+		p = PORT
+	}
+
 	return &server{
 		Router: r,
-		Port:   PORT,
+		Port:   p,
 	}
 }
 
@@ -45,4 +57,13 @@ func (s *server) MountHandlers() {
 	api.Get("/{shortURL}", handlers.Redirect)
 
 	s.Router.Mount("/v1", api)
+}
+
+func (s *server) ConnectDB() {
+	conn, err := sql.Open("postgres", utils.GetEnv("DB_URL"))
+	if err != nil {
+		panic("Failed to connect to database")
+	}
+
+	s.DB = database.New(conn)
 }

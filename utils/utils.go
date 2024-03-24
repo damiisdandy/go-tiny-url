@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"os"
 )
 
 func RespondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
@@ -31,4 +32,12 @@ func RespondWithError(w http.ResponseWriter, code int, message string) {
 	}
 
 	RespondWithJSON(w, code, errorResponse{Error: message, Status: false})
+}
+
+func GetEnv(key string) string {
+	value := os.Getenv(key)
+	if value == "" {
+		panic("Environment variable " + key + " is not set.")
+	}
+	return value
 }
